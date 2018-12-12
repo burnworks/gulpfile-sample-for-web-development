@@ -23,9 +23,6 @@ var gulp = require('gulp'),
     tinyping = require('gulp-tinypng-compress'),
     uglify = require('gulp-uglify');
  
-// default
-gulp.task('default', ['watch', 'browser-sync']);
- 
 // concat
 gulp.task('css.concat', () => {
   var plugins = [
@@ -36,7 +33,7 @@ gulp.task('css.concat', () => {
   nested,
   simplevars
   ];
-  gulp.src('docs/tmp/css/*.css')
+  return gulp.src('docs/tmp/css/*.css')
   .pipe(plumber({
     errorHandler: notify.onError('Error: <%= error.message %>')
   }))
@@ -50,8 +47,8 @@ gulp.task('css.concat', () => {
 });
  
 // cssmin
-gulp.task('cssmin', ['css.concat'], () => {
-  gulp.src('docs/tmp/concat/s.css')
+gulp.task('cssmin', () => {
+  return gulp.src('docs/tmp/concat/s.css')
   .pipe(plumber({
     errorHandler: notify.onError('Error: <%= error.message %>')
   }))
@@ -62,7 +59,7 @@ gulp.task('cssmin', ['css.concat'], () => {
 });
  
 // css
-gulp.task('css', ['css.concat', 'cssmin']);
+gulp.task('css', gulp.series('css.concat', 'cssmin'));
  
 // coffee
 gulp.task('coffee', () => {
@@ -105,9 +102,9 @@ gulp.task('slim', () => {
  
 // watch
 gulp.task('watch', () => {
-  gulp.watch(['docs/tmp/css/*.css'], ['css']);
-  gulp.watch(['docs/tmp/js/*.coffee'], ['coffee']);
-  gulp.watch(['docs/tmp/slim/**/*.slim'], ['slim']);
+  gulp.watch('docs/tmp/css/*.css', gulp.task('css'));
+  gulp.watch('docs/tmp/js/*.coffee', gulp.task('coffee'));
+  gulp.watch('docs/tmp/slim/**/*.slim', gulp.task('slim'));
 });
  
 // browser-sync
@@ -197,3 +194,6 @@ gulp.task('cssv', () => {
   }))
   .pipe(cssv.formatter('compact'))
 });
+
+// default
+gulp.task('default', gulp.parallel('watch', 'browser-sync'));
