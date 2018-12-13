@@ -21,7 +21,7 @@ var gulp = require('gulp'),
     slim = require('gulp-slim'),
     ssi = require('browsersync-ssi'),
     tinyping = require('gulp-tinypng-compress'),
-    uglify = require('gulp-uglify');
+    terser = require('gulp-terser');
  
 // concat
 gulp.task('css.concat', () => {
@@ -63,7 +63,7 @@ gulp.task('css', gulp.series('css.concat', 'cssmin'));
  
 // coffee
 gulp.task('coffee', () => {
-  gulp.src('docs/tmp/js/*.coffee')
+  return gulp.src('docs/tmp/js/*.coffee')
   .pipe(plumber({
     errorHandler: notify.onError('Error: <%= error.message %>')
   }))
@@ -72,22 +72,20 @@ gulp.task('coffee', () => {
   .pipe(browserSync.stream())
 });
  
-// uglify
-gulp.task('jsmin', (cb) => {
-  pump(
-    [
-      gulp.src('htdocs/js/*js'),
-      uglify(),
-      rename({suffix: '.min'}),
-      gulp.dest('htdocs/js/min')
-    ],
-    cb
-  );
+// terser
+gulp.task('jsmin', () => {
+  return gulp.src('htdocs/js/*.js')
+  .pipe(plumber({
+    errorHandler: notify.onError('Error: <%= error.message %>')
+  }))
+  .pipe(terser())
+  .pipe(rename({suffix: '.min'}))
+  .pipe(gulp.dest('htdocs/js/min'))
 });
  
 // slim
 gulp.task('slim', () => {
-  gulp.src('docs/tmp/slim/*.slim')
+  return gulp.src('docs/tmp/slim/*.slim')
   .pipe(plumber({
     errorHandler: notify.onError('Error: <%= error.message %>')
   }))
@@ -124,7 +122,7 @@ gulp.task('browser-sync', () => {
  
 // tinypng
 gulp.task('tinypng', () => {
-  gulp.src('docs/tmp/img/src/**/*.{png,jpg}')
+  return gulp.src('docs/tmp/img/src/**/*.{png,jpg}')
     .pipe(tinyping({
       key: '__API_Key__'
       summarize: true
@@ -134,7 +132,7 @@ gulp.task('tinypng', () => {
  
 // imagemin
 gulp.task('imagemin', () => {
-  gulp.src('docs/tmp/img/src/**/*.{png,jpg,gif,svg}')
+  return gulp.src('docs/tmp/img/src/**/*.{png,jpg,gif,svg}')
   .pipe(imagemin([
     imagemin.gifsicle({interlaced: true}),
     imagemin.jpegtran({progressive: true}),
@@ -150,14 +148,14 @@ gulp.task('imagemin', () => {
  
 // htmlhint
 gulp.task('htmlv', () => {
-  gulp.src('htdocs/*.html')
+  return gulp.src('htdocs/*.html')
   .pipe(htmlv())
   .pipe(htmlv.reporter())
 });
  
 // csslint
 gulp.task('cssv', () => {
-  gulp.src('htdocs/css/s.min.css')
+  return gulp.src('htdocs/css/s.min.css')
   .pipe(cssv({
     'adjoining-classes': false,
     'box-model': false,
