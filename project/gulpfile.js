@@ -8,6 +8,7 @@ var gulp = require('gulp'),
     colorfunction = require('postcss-color-function'),
     coffee = require('gulp-coffee'),
     concat = require('gulp-concat'),
+    connectSSI = require('connect-ssi'),
     htmlv = require('gulp-htmlhint'),
     imagemin = require('gulp-imagemin'),
     mqpacker = require('css-mqpacker'),
@@ -18,10 +19,8 @@ var gulp = require('gulp'),
     rename = require('gulp-rename'),
     simplevars = require('postcss-simple-vars'),
     slim = require('gulp-slim'),
-    ssi = require('browsersync-ssi'),
-    tinyping = require('gulp-tinypng-compress'),
     terser = require('gulp-terser');
- 
+
 // concat
 gulp.task('css.concat', () => {
   var plugins = [
@@ -44,7 +43,7 @@ gulp.task('css.concat', () => {
   .pipe(concat('s.css'))
   .pipe(gulp.dest('docs/tmp/concat'))
 });
- 
+
 // cssmin
 gulp.task('cssmin', () => {
   return gulp.src('docs/tmp/concat/s.css')
@@ -56,10 +55,10 @@ gulp.task('cssmin', () => {
   .pipe(gulp.dest('htdocs/css'))
   .pipe(browserSync.stream())
 });
- 
+
 // css
 gulp.task('css', gulp.series('css.concat', 'cssmin'));
- 
+
 // coffee
 gulp.task('coffee', () => {
   return gulp.src('docs/tmp/js/*.coffee')
@@ -70,7 +69,7 @@ gulp.task('coffee', () => {
   .pipe(gulp.dest('htdocs/js'))
   .pipe(browserSync.stream())
 });
- 
+
 // terser
 gulp.task('jsmin', () => {
   return gulp.src('htdocs/js/*.js')
@@ -81,7 +80,7 @@ gulp.task('jsmin', () => {
   .pipe(rename({suffix: '.min'}))
   .pipe(gulp.dest('htdocs/js/min'))
 });
- 
+
 // slim
 gulp.task('slim', () => {
   return gulp.src('docs/tmp/slim/*.slim')
@@ -96,39 +95,29 @@ gulp.task('slim', () => {
   .pipe(gulp.dest('htdocs'))
   .pipe(browserSync.stream())
 });
- 
+
 // watch
 gulp.task('watch', () => {
   gulp.watch('docs/tmp/css/*.css', gulp.task('css'));
   gulp.watch('docs/tmp/js/*.coffee', gulp.task('coffee'));
   gulp.watch('docs/tmp/slim/**/*.slim', gulp.task('slim'));
 });
- 
+
 // browser-sync
 gulp.task('browser-sync', () => {
   browserSync({
     server: {
       baseDir: 'htdocs',
-      middleware:[
-        ssi({
-          ext: '.html',
-          baseDir: 'htdocs'
+      middleware: [
+        connectSSI({
+         ext: '.html',
+         baseDir: 'htdocs'
         })
       ]
     }
   });
 });
- 
-// tinypng
-gulp.task('tinypng', () => {
-  return gulp.src('docs/tmp/img/src/**/*.{png,jpg}')
-    .pipe(tinyping({
-      key: '__API_Key__'
-      summarize: true
-    }))
-    .pipe(gulp.dest('docs/tmp/img/dist'))
-});
- 
+
 // imagemin
 gulp.task('imagemin', () => {
   return gulp.src('docs/tmp/img/src/**/*.{png,jpg,gif,svg}')
@@ -144,14 +133,14 @@ gulp.task('imagemin', () => {
   ]))
   .pipe(gulp.dest('docs/tmp/img/dist'))
 });
- 
+
 // htmlhint
 gulp.task('htmlv', () => {
   return gulp.src('htdocs/*.html')
   .pipe(htmlv())
   .pipe(htmlv.reporter())
 });
- 
+
 // csslint
 gulp.task('cssv', () => {
   return gulp.src('htdocs/css/s.min.css')
