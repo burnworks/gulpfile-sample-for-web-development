@@ -37,8 +37,7 @@ gulp.task('css.concat', () => {
   }))
   .pipe(postcss(plugins))
   .pipe(autoprefixer({
-    browsers: ['last 2 version'],
-    grid: true
+    grid: 'autoplace'
   }))
   .pipe(concat('s.css'))
   .pipe(gulp.dest('docs/tmp/concat'))

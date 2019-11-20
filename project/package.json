@@ -39,5 +39,8 @@
     "postcss-nested": "^3.0.0",
     "postcss-simple-vars": "^4.1.0",
     "pump": "^3.0.0"
-  }
+  },
+  "browserslist": [
+    "last 2 version"
+  ]
 }
