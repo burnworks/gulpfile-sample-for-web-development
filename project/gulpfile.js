@@ -1,28 +1,31 @@
-var gulp = require('gulp'),
-    autoprefixer = require('gulp-autoprefixer'),
-    browserSync = require('browser-sync'),
-    cssimport = require('postcss-import'),
-    cssmin = require('gulp-cssmin'),
-    cssv = require('gulp-csslint'),
-    cssvariables = require('postcss-css-variables'),
-    colorfunction = require('postcss-color-function'),
-    coffee = require('gulp-coffee'),
-    concat = require('gulp-concat'),
-    connectSSI = require('connect-ssi'),
-    htmlv = require('gulp-htmlhint'),
-    imagemin = require('gulp-imagemin'),
-    mqpacker = require('css-mqpacker'),
-    nested = require('postcss-nested'),
-    notify = require('gulp-notify'),
-    plumber = require('gulp-plumber'),
-    postcss = require('gulp-postcss'),
-    rename = require('gulp-rename'),
-    simplevars = require('postcss-simple-vars'),
-    slim = require('gulp-slim'),
-    terser = require('gulp-terser');
+const { src, dest, watch, series, parallel } = require('gulp'),
+      autoprefixer = require('gulp-autoprefixer'),
+      babel = require('gulp-babel'),
+      browserSync = require('browser-sync'),
+      cssimport = require('postcss-import'),
+      cssmin = require('gulp-cssmin'),
+      cssv = require('gulp-csslint'),
+      cssvariables = require('postcss-css-variables'),
+      colorfunction = require('postcss-color-function'),
+      coffee = require('gulp-coffee'),
+      concat = require('gulp-concat'),
+      connectSSI = require('connect-ssi'),
+      htmlv = require('gulp-htmlhint'),
+      imagemin = require('gulp-imagemin'),
+      mqpacker = require('css-mqpacker'),
+      nested = require('postcss-nested'),
+      notify = require('gulp-notify'),
+      plumber = require('gulp-plumber'),
+      postcss = require('gulp-postcss'),
+      rename = require('gulp-rename'),
+      simplevars = require('postcss-simple-vars'),
+      slim = require('gulp-slim'),
+      sourcemaps = require('gulp-sourcemaps'),
+      uglify = require('gulp-uglify'),
+      terser = require('gulp-terser');
 
 // concat
-gulp.task('css.concat', () => {
+const taskCssconcat = (done) => {
   var plugins = [
   colorfunction,
   cssimport,
@@ -40,11 +43,13 @@ gulp.task('css.concat', () => {
     grid: 'autoplace'
   }))
   .pipe(concat('s.css'))
-  .pipe(gulp.dest('docs/tmp/concat'))
-});
+  .pipe(gulp.dest('docs/tmp/concat'));
+  done();
+}
+exports.cssconcat = taskCssconcat;
 
 // cssmin
-gulp.task('cssmin', () => {
+const taskCssmin = (done) => {
   return gulp.src('docs/tmp/concat/s.css')
   .pipe(plumber({
     errorHandler: notify.onError('Error: <%= error.message %>')
@@ -52,36 +57,39 @@ gulp.task('cssmin', () => {
   .pipe(cssmin())
   .pipe(rename({suffix: '.min'}))
   .pipe(gulp.dest('htdocs/css'))
-  .pipe(browserSync.stream())
-});
-
-// css
-gulp.task('css', gulp.series('css.concat', 'cssmin'));
+  .pipe(browserSync.stream());
+  done();
+}
+exports.cssmin = taskCssmin;
 
 // coffee
-gulp.task('coffee', () => {
+const taskCoffee = (done) => {
   return gulp.src('docs/tmp/js/*.coffee')
   .pipe(plumber({
     errorHandler: notify.onError('Error: <%= error.message %>')
   }))
   .pipe(coffee({bare: true}))
   .pipe(gulp.dest('htdocs/js'))
-  .pipe(browserSync.stream())
-});
+  .pipe(browserSync.stream());
+  done();
+}
+exports.coffee = taskCoffee;
 
 // terser
-gulp.task('jsmin', () => {
+const taskJsmin = (done) => {
   return gulp.src('htdocs/js/*.js')
   .pipe(plumber({
     errorHandler: notify.onError('Error: <%= error.message %>')
   }))
   .pipe(terser())
   .pipe(rename({suffix: '.min'}))
-  .pipe(gulp.dest('htdocs/js/min'))
-});
+  .pipe(gulp.dest('htdocs/js/min'));
+  done();
+}
+exports.jsmin = taskJsmin;
 
 // slim
-gulp.task('slim', () => {
+const taskSlim = (done) => {
   return gulp.src('docs/tmp/slim/*.slim')
   .pipe(plumber({
     errorHandler: notify.onError('Error: <%= error.message %>')
@@ -92,18 +100,23 @@ gulp.task('slim', () => {
     options: 'include_dirs=["docs/tmp/slim/inc"]'
   }))
   .pipe(gulp.dest('htdocs'))
-  .pipe(browserSync.stream())
-});
+  .pipe(browserSync.stream());
+  done();
+}
+exports.slim = taskSlim;
 
 // watch
-gulp.task('watch', () => {
-  gulp.watch('docs/tmp/css/*.css', gulp.task('css'));
-  gulp.watch('docs/tmp/js/*.coffee', gulp.task('coffee'));
-  gulp.watch('docs/tmp/slim/**/*.slim', gulp.task('slim'));
-});
+const taskWatch = (done) => {
+  watch('docs/tmp/css/*.css', series(taskCssconcat, taskCssmin));
+  watch('docs/tmp/js/*.js', taskBabel);
+  watch('docs/tmp/js/*.coffee', taskCoffee);
+  watch('docs/tmp/slim/**/*.slim', taskSlim);
+  done();
+}
+exports.watch = taskWatch;
 
 // browser-sync
-gulp.task('browser-sync', () => {
+const taskServe = (done) => {
   browserSync({
     server: {
       baseDir: 'htdocs',
@@ -115,10 +128,12 @@ gulp.task('browser-sync', () => {
       ]
     }
   });
-});
+  done();
+}
+exports.serve = taskServe;
 
 // imagemin
-gulp.task('imagemin', () => {
+const taskImagemin = (done) => {
   return gulp.src('docs/tmp/img/src/**/*.{png,jpg,gif,svg}')
   .pipe(imagemin([
     imagemin.gifsicle({interlaced: true}),
@@ -130,18 +145,22 @@ gulp.task('imagemin', () => {
       ]
     })
   ]))
-  .pipe(gulp.dest('docs/tmp/img/dist'))
-});
+  .pipe(gulp.dest('docs/tmp/img/dist'));
+  done();
+}
+exports.imagemin = taskImagemin;
 
 // htmlhint
-gulp.task('htmlv', () => {
+const taskHtmlv = (done) => {
   return gulp.src('htdocs/*.html')
   .pipe(htmlv())
-  .pipe(htmlv.reporter())
-});
+  .pipe(htmlv.reporter());
+  done();
+}
+exports.htmlv = taskHtmlv;
 
 // csslint
-gulp.task('cssv', () => {
+const taskCssv = (done) => {
   return gulp.src('htdocs/css/s.min.css')
   .pipe(cssv({
     'adjoining-classes': false,
@@ -177,8 +196,35 @@ gulp.task('cssv', () => {
     'vendor-prefix': false,
     'zero-units': true
   }))
-  .pipe(cssv.formatter('compact'))
-});
+  .pipe(cssv.formatter('compact'));
+  done();
+}
+exports.cssv = taskCssv;
+
+// babel
+const taskBabel = (done) => {
+ src('docs/tmp/js/*.js')
+  .pipe(plumber(
+   { errorHandler: notify.onError('Error: <%= error.message %>') }
+  ))
+  .pipe(sourcemaps.init())
+  .pipe(babel(
+   { presets: ['@babel/preset-env'] }
+  ))
+  .pipe(concat('main.js'))
+  .pipe(uglify())
+  .pipe(rename(
+   { extname: '.min.js' }
+  ))
+  .pipe(sourcemaps.write('maps'))
+  .pipe(dest('htdocs/js'))
+  .pipe(browserSync.stream());
+  done();
+}
+exports.babel = taskBabel;
 
 // default
-gulp.task('default', gulp.parallel('watch', 'browser-sync'));
+exports.default = parallel(taskWatch, taskServe);
+
+// css
+exports.css = series(taskCssconcat, taskCssmin);
