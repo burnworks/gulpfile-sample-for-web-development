@@ -21,7 +21,6 @@ const { src, dest, watch, series, parallel } = require('gulp'),
       simplevars = require('postcss-simple-vars'),
       slim = require('gulp-slim'),
       sourcemaps = require('gulp-sourcemaps'),
-      uglify = require('gulp-uglify'),
       terser = require('gulp-terser');
 
 // concat
@@ -34,7 +33,7 @@ const taskCssconcat = (done) => {
   nested,
   simplevars
   ];
-  return gulp.src('docs/tmp/css/*.css')
+  return src('docs/tmp/css/*.css')
   .pipe(plumber({
     errorHandler: notify.onError('Error: <%= error.message %>')
   }))
@@ -43,20 +42,20 @@ const taskCssconcat = (done) => {
     grid: 'autoplace'
   }))
   .pipe(concat('s.css'))
-  .pipe(gulp.dest('docs/tmp/concat'));
+  .pipe(dest('docs/tmp/concat'));
   done();
 }
 exports.cssconcat = taskCssconcat;
 
 // cssmin
 const taskCssmin = (done) => {
-  return gulp.src('docs/tmp/concat/s.css')
+  return src('docs/tmp/concat/s.css')
   .pipe(plumber({
     errorHandler: notify.onError('Error: <%= error.message %>')
   }))
   .pipe(cssmin())
   .pipe(rename({suffix: '.min'}))
-  .pipe(gulp.dest('htdocs/css'))
+  .pipe(dest('htdocs/css'))
   .pipe(browserSync.stream());
   done();
 }
@@ -64,12 +63,12 @@ exports.cssmin = taskCssmin;
 
 // coffee
 const taskCoffee = (done) => {
-  return gulp.src('docs/tmp/js/*.coffee')
+  return src('docs/tmp/js/*.coffee')
   .pipe(plumber({
     errorHandler: notify.onError('Error: <%= error.message %>')
   }))
   .pipe(coffee({bare: true}))
-  .pipe(gulp.dest('htdocs/js'))
+  .pipe(dest('htdocs/js'))
   .pipe(browserSync.stream());
   done();
 }
@@ -77,20 +76,20 @@ exports.coffee = taskCoffee;
 
 // terser
 const taskJsmin = (done) => {
-  return gulp.src('htdocs/js/*.js')
+  return src('htdocs/js/*.js')
   .pipe(plumber({
     errorHandler: notify.onError('Error: <%= error.message %>')
   }))
   .pipe(terser())
   .pipe(rename({suffix: '.min'}))
-  .pipe(gulp.dest('htdocs/js/min'));
+  .pipe(dest('htdocs/js/min'));
   done();
 }
 exports.jsmin = taskJsmin;
 
 // slim
 const taskSlim = (done) => {
-  return gulp.src('docs/tmp/slim/*.slim')
+  return src('docs/tmp/slim/*.slim')
   .pipe(plumber({
     errorHandler: notify.onError('Error: <%= error.message %>')
   }))
@@ -99,7 +98,7 @@ const taskSlim = (done) => {
     pretty: true,
     options: 'include_dirs=["docs/tmp/slim/inc"]'
   }))
-  .pipe(gulp.dest('htdocs'))
+  .pipe(dest('htdocs'))
   .pipe(browserSync.stream());
   done();
 }
@@ -134,7 +133,7 @@ exports.serve = taskServe;
 
 // imagemin
 const taskImagemin = (done) => {
-  return gulp.src('docs/tmp/img/src/**/*.{png,jpg,gif,svg}')
+  return src('docs/tmp/img/src/**/*.{png,jpg,gif,svg}')
   .pipe(imagemin([
     imagemin.gifsicle({interlaced: true}),
     imagemin.jpegtran({progressive: true}),
@@ -145,14 +144,14 @@ const taskImagemin = (done) => {
       ]
     })
   ]))
-  .pipe(gulp.dest('docs/tmp/img/dist'));
+  .pipe(dest('docs/tmp/img/dist'));
   done();
 }
 exports.imagemin = taskImagemin;
 
 // htmlhint
 const taskHtmlv = (done) => {
-  return gulp.src('htdocs/*.html')
+  return src('htdocs/*.html')
   .pipe(htmlv())
   .pipe(htmlv.reporter());
   done();
@@ -161,7 +160,7 @@ exports.htmlv = taskHtmlv;
 
 // csslint
 const taskCssv = (done) => {
-  return gulp.src('htdocs/css/s.min.css')
+  return src('htdocs/css/s.min.css')
   .pipe(cssv({
     'adjoining-classes': false,
     'box-model': false,
@@ -212,10 +211,8 @@ const taskBabel = (done) => {
    { presets: ['@babel/preset-env'] }
   ))
   .pipe(concat('main.js'))
-  .pipe(uglify())
-  .pipe(rename(
-   { extname: '.min.js' }
-  ))
+  .pipe(terser())
+  .pipe(rename({suffix: '.min'}))
   .pipe(sourcemaps.write('maps'))
   .pipe(dest('htdocs/js'))
   .pipe(browserSync.stream());
