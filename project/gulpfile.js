@@ -203,13 +203,13 @@ exports.cssv = taskCssv;
 // babel
 const taskBabel = (done) => {
  src('docs/tmp/js/*.js')
-  .pipe(plumber(
-   { errorHandler: notify.onError('Error: <%= error.message %>') }
-  ))
+  .pipe(plumber({
+    errorHandler: notify.onError('Error: <%= error.message %>')
+  }))
   .pipe(sourcemaps.init())
-  .pipe(babel(
-   { presets: ['@babel/preset-env'] }
-  ))
+  .pipe(babel({
+    presets: ['@babel/preset-env']
+  }))
   .pipe(concat('main.js'))
   .pipe(terser())
   .pipe(rename({suffix: '.min'}))
