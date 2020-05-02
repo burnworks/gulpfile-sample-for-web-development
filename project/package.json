@@ -31,7 +31,6 @@
     "gulp-slim": "^0.3.0",
     "gulp-sourcemaps": "^2.6.5",
     "gulp-terser": "^1.2.0",
-    "gulp-uglify": "^3.0.2",
     "node-notifier": "^7.0.0",
     "postcss": "^7.0.27",
     "postcss-color-function": "^4.1.0",
